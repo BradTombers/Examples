@@ -1,0 +1,63 @@
+#print('This script will do the following things:\n1)Ask for a directory\n2)Create new output folder 3)Find all .csv files and create three files: one with just the headers, one without headers, and blah blah blah.\n\nContinue? \n')
+answer = input('Y/N?')
+
+# Make sure the user wants to continue
+if answer == 'Y' or 'y':
+
+    # get file directory from user and create new folder
+    directory = input('Enter the directory: ')
+    #directory = '/Users/b.tombers/Desktop/python_test/Boxscores'
+    new_dir_noheaders = directory + '/output_noheader'
+    new_dir_headeronly = directory + '/output_headeronly'
+    new_dir_table_key = directory + '/output_table_key'
+    
+    #if folder exists, do nothing, otherwise create it
+    try:
+        os.stat(new_dir_noheaders)
+    except:
+        os.mkdir(new_dir_noheaders) 
+        
+    try:
+        os.stat(new_dir_headeronly)
+    except:
+        os.mkdir(new_dir_headeronly) 
+        
+    try:
+        os.stat(new_dir_table_key)
+    except:
+        os.mkdir(new_dir_table_key) 
+
+    # get a list of filenames that end in .csv    
+    filenames = []
+    filenames.append(f for f in listdir(directory) if f.endswith('.csv'))
+
+    # weird magic - takes it from generator object to something I can work with
+    files = []
+    for file in filenames:
+        files.append(list(file))
+
+    files = files[0] 
+
+    #process and export files
+    for file in files:
+         
+        print(file)    
+        # read file, create new name, export with no header
+        df = pd.read_csv(file, encoding = 'latin-1')
+        new_name = 'output_noheader/' + file[:-4] + '_noheader.csv'
+        df.to_csv(new_name,index=False, header = None)
+        
+        # prepare for last file before we delete columns
+        list_headers = list(df.columns)
+        
+        # create new name, new dataframe with only the columns as the data, and export 
+        new_name = 'output_headeronly/' + file[:-4] + '_headeronly.csv'        
+        df = pd.DataFrame(columns = df.columns)
+        df.to_csv(new_name, index = False)
+        
+        # process text of headers, put into dataframe and export
+        for idx, item in enumerate(list_headers):
+            list_headers[idx] = '`' + item + '`' + ' string,'
+        df = pd.DataFrame(list_headers)
+        new_name = 'output_table_key/' + file[:-4] + '_table_key.csv'
+        df.to_csv(new_name, index = False, header = None)
